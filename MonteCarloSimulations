@@ -1,0 +1,91 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jan 26 15:00:34 2022
+
+@author: gchantas
+"""
+from matplotlib import pyplot
+
+import numpy as np
+from numpy.random import randn,rand,set_state
+from numpy.random import RandomState,multivariate_normal
+from numpy.linalg import eigvals,eig
+
+
+N=12
+S=1000
+X=np.zeros( (N) )
+M=np.zeros( (N) )
+C=np.zeros( (N,N) )
+
+myseed=15
+np.random.seed(myseed)
+
+for i in range(S):
+    X=randn(N)
+    M=M+100*X/S
+    C=C+np.outer((X),(X))/S
+
+C=C+np.outer((M),(M))/S
+
+w=np.zeros( (N,) )
+
+wnorm=0
+for i in range(N):
+    w[i]=rand()
+    wnorm=wnorm+w[i]
+
+for i in range(N):
+    w[i]=w[i]/wnorm
+    
+S2=1000
+output=np.zeros( (S2) )
+for i in range(S2):
+    output[i]=(sum( ( w*np.random.multivariate_normal(M,C)) ).T)
+
+print(sum(output/S2))
+
+pyplot.hist(output,100)
+
+
+outputT=np.zeros( (S2) )
+
+[L,V]=eig(C)
+
+outputT=np.zeros( (S2) )
+
+#theta parameter of the Gamma distribution, mean is kappa*theta, where is set below wkappa= eigenvalue *theta, thus mean = eigenvalue
+theta=50.1
+for i in range(S2):
+    Lnew=np.zeros( (N) )
+    Cnew=np.zeros( (N,N) )
+
+    for j in range(N):
+        Lnew[j]=np.random.gamma(L[j]/theta,theta)
+    
+    LnewDiag= np.diag(Lnew)
+    [l2,v2]=eig(V.dot(LnewDiag.dot(V.T)))
+    Cnew=V.dot(LnewDiag.dot(V.T))
+    outputT[i]=(sum( ( w*np.random.multivariate_normal(M,Cnew)) ).T)
+
+# for i in range(S2):
+    
+    
+#     X=np.zeros( (N) )
+#     C2=np.zeros( (N,N) )+C*S/(S2+S)
+#     for j in range(S2):
+#         X=randn(N)
+#         C2=C2+np.outer((X),(X))/(S2+S)
+   
+#     outputT[i]=(sum( ( w*multivariate_normal(M,C2)) ).T)
+
+# print(sum(outputT/S2))
+
+fig, axes = pyplot.subplots( 2,1, tight_layout=True)
+ax0, ax1= axes.flatten()
+
+ax0.hist(output,100)
+ax1.hist(outputT,100)
+
+ax0.set_title( 'Histogram for Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5])
+ax1.set_title( 'Histogram for Student-t case. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5])
