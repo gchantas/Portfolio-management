@@ -33,6 +33,12 @@ w=np.zeros( (N,) )
 wnorm=0
 for i in range(N):
     w[i]=rand()
+
+
+w[0]=0.0
+w[5]=0.0
+
+for i in range(N):
     wnorm=wnorm+w[i]
 
 for i in range(N):
