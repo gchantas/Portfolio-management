@@ -18,7 +18,7 @@ X=np.zeros( (N) )
 M=np.zeros( (N) )
 C=np.zeros( (N,N) )
 
-myseed=15
+myseed=28
 np.random.seed(myseed)
 
 for i in range(S):
@@ -35,8 +35,8 @@ for i in range(N):
     w[i]=rand()
 
 
-w[0]=0.0
-w[5]=0.0
+# w[0]=0.0
+# w[5]=0.0
 
 for i in range(N):
     wnorm=wnorm+w[i]
@@ -93,5 +93,5 @@ ax0, ax1= axes.flatten()
 ax0.hist(output,100)
 ax1.hist(outputT,100)
 
-ax0.set_title( 'Histogram for Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5])
-ax1.set_title( 'Histogram for Student-t case. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5])
+ax0.set_title( 'Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5]+'. Min/max='+str(min(output))[0:5]+'/'+str(max(output))[0:5])
+ax1.set_title( 'Student-t case. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5]+'. Min/max='+str(min(outputT))[0:5]+'/'+str(max(outputT))[0:5])
