@@ -1,5 +1,7 @@
 # Portfolio-management
-Software demonstrating the differences between the distribution of gain/loss when allocating budget on a certain portfolio. Two models are compared: multivariate Gaussian vs. multivariate Students-t
+Software demonstrating core idea of Chapet 25-Statistical Consequences of Fat-tails, N.N. Taleb. 
+Particularly, the differences are shown between the distribution of gain/loss when allocating budget on a certain portfolio. 
+Two models are compared: multivariate Gaussian vs. multivariate Students-t.
 
 Chaing the seed changes the experimental results. For fixed seed, the results are always the same (reproducibiility!).
 N is the dimensions of the random variables X.
