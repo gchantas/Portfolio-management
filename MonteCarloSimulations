@@ -18,7 +18,7 @@ X=np.zeros( (N) )
 M=np.zeros( (N) )
 C=np.zeros( (N,N) )
 
-myseed=28
+myseed=21
 np.random.seed(myseed)
 
 for i in range(S):
@@ -61,7 +61,11 @@ outputT=np.zeros( (S2) )
 outputT=np.zeros( (S2) )
 
 #theta parameter of the Gamma distribution, mean is kappa*theta, where is set below wkappa= eigenvalue *theta, thus mean = eigenvalue
-theta=50.1
+
+
+theta=1000.1
+
+
 for i in range(S2):
     Lnew=np.zeros( (N) )
     Cnew=np.zeros( (N,N) )
@@ -94,4 +98,74 @@ ax0.hist(output,100)
 ax1.hist(outputT,100)
 
 ax0.set_title( 'Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5]+'. Min/max='+str(min(output))[0:5]+'/'+str(max(output))[0:5])
-ax1.set_title( 'Student-t case. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5]+'. Min/max='+str(min(outputT))[0:5]+'/'+str(max(outputT))[0:5])
+ax1.set_title( 'Students-t case. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5]+'. Min/max='+str(min(outputT))[0:5]+'/'+str(max(outputT))[0:5])
+
+pyplot.show()
+##############################################################################
+
+
+from tkinter import Tk, Scale, Button, HORIZONTAL,mainloop
+
+
+
+def show_values():
+    for i in range(N):
+        print (wSlider[i].get())
+
+def rescale_values():
+    sum1=0.0;
+    for i in range(N):
+        sum1=sum1+wSlider[i].get()
+
+    if sum1==0:
+        sum1=1;
+    for i in range(N):
+        wSlider[i].set(100*wSlider[i].get()/sum1)
+        wSlider[i].pack()
+        w[i]=wSlider[i].get()/100
+        
+
+
+
+    [L,V]=eig(C)
+
+    outputT=np.zeros( (S2) )
+
+    #theta parameter of the Gamma distribution, mean is kappa*theta, where is set below wkappa= eigenvalue *theta, thus mean = eigenvalue
+    theta=50.1
+    for i in range(S2):
+        Lnew=np.zeros( (N) )
+        Cnew=np.zeros( (N,N) )
+
+        for j in range(N):
+            Lnew[j]=np.random.gamma(L[j]/theta,theta)
+        
+        LnewDiag= np.diag(Lnew)
+        [l2,v2]=eig(V.dot(LnewDiag.dot(V.T)))
+        Cnew=V.dot(LnewDiag.dot(V.T))
+        outputT[i]=(sum( ( w*np.random.multivariate_normal(M,Cnew)) ).T)
+
+    fig2, axes2 = pyplot.subplots( 2,1, tight_layout=True)
+    ax02, ax12= axes2.flatten()
+
+    ax12.hist(outputT,100)
+    ax02.hist(output,100)
+    ax02.set_title( 'Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5]+'. Min/max='+str(min(output))[0:5]+'/'+str(max(output))[0:5])
+    ax12.set_title( 'Students-t Reweighted. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5]+'. Min/max='+str(min(outputT))[0:5]+'/'+str(max(outputT))[0:5])
+    pyplot.show()
+##############################################################################
+
+
+master = Tk()
+
+wSlider = []
+for i in range(N):
+    wSlider.append( Scale(master,length=300, from_=0, to=100, tickinterval=50, orient=HORIZONTAL,label='correspondnig mean: '+str(M[i])[0:5]+' std:'+str(C[i,i])[0:5]))
+    wSlider[i].set(1/N)
+    wSlider[i].pack()
+
+Button(master, text='Show', command=show_values).pack()
+Button(master, text='Rescale', command=rescale_values).pack()
+
+
+mainloop()
