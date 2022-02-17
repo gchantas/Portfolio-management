@@ -1,5 +1,5 @@
 # Portfolio-management
-Software demonstrating core idea of Chapet 25-Statistical Consequences of Fat-tails, N.N. Taleb. 
+Software demonstrating core idea of Chapter 25-Statistical Consequences of Fat-tails, N.N. Taleb. 
 Particularly, the differences are shown between the distribution of gain/loss when allocating budget on a certain portfolio. 
 Two models are compared: multivariate Gaussian vs. multivariate Students-t.
 
