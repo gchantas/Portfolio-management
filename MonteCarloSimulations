@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 26 15:00:34 2022
+Created on Mon Feb 21 15:53:07 2022
 
 @author: gchantas
 """
+
 from matplotlib import pyplot
 
 import numpy as np
@@ -12,36 +13,36 @@ from numpy.random import RandomState,multivariate_normal
 from numpy.linalg import eigvals,eig
 
 
-N=12
+dimensions=10
 S=1000
-X=np.zeros( (N) )
-M=np.zeros( (N) )
-C=np.zeros( (N,N) )
+X=np.zeros( (dimensions) )
+M=np.zeros( (dimensions) )
+C=np.zeros( (dimensions,dimensions) )
 
-myseed=21
+myseed=32
 np.random.seed(myseed)
 
 for i in range(S):
-    X=randn(N)
+    X=randn(dimensions)
     M=M+100*X/S
     C=C+np.outer((X),(X))/S
 
-C=C+np.outer((M),(M))/S
 
-w=np.zeros( (N,) )
+
+w=np.zeros( (dimensions,) )
 
 wnorm=0
-for i in range(N):
+for i in range(dimensions):
     w[i]=rand()
 
 
 # w[0]=0.0
 # w[5]=0.0
 
-for i in range(N):
+for i in range(dimensions):
     wnorm=wnorm+w[i]
 
-for i in range(N):
+for i in range(dimensions):
     w[i]=w[i]/wnorm
     
 S2=1000
@@ -54,28 +55,27 @@ print(sum(output/S2))
 pyplot.hist(output,100)
 
 
-outputT=np.zeros( (S2) )
 
-[L,V]=eig(C)
 
 outputT=np.zeros( (S2) )
 
 #theta parameter of the Gamma distribution, mean is kappa*theta, where is set below wkappa= eigenvalue *theta, thus mean = eigenvalue
 
 
-theta=1000.1
+nuT=.1 #Degress of freedom <---------------
+
+lambdaT = 0
+for i in range(dimensions):
+    lambdaT= lambdaT + C[i,i]/dimensions
 
 
-for i in range(S2):
-    Lnew=np.zeros( (N) )
-    Cnew=np.zeros( (N,N) )
-
-    for j in range(N):
-        Lnew[j]=np.random.gamma(L[j]/theta,theta)
     
-    LnewDiag= np.diag(Lnew)
-    [l2,v2]=eig(V.dot(LnewDiag.dot(V.T)))
-    Cnew=V.dot(LnewDiag.dot(V.T))
+for i in range(S2):
+    Cnew=np.zeros( (dimensions,dimensions) )
+
+    sampleGamma=np.random.gamma(nuT/2,2/nuT)
+    
+    Cnew=sampleGamma*C
     outputT[i]=(sum( ( w*np.random.multivariate_normal(M,Cnew)) ).T)
 
 # for i in range(S2):
@@ -104,46 +104,60 @@ pyplot.show()
 ##############################################################################
 
 
-from tkinter import Tk, Scale, Button, HORIZONTAL,mainloop
+from tkinter import Tk, Scale, Button, HORIZONTAL,mainloop,Text
 
+from tkinter import *
+from tkinter import ttk
 
-
-def show_values():
+def setNu():
+    global nuT
+    nuT=float(e.get())
+    print(nuT)
+    
+def equalize_values():
+    global dimensions
+    N=dimensions
     for i in range(N):
+        wSlider[i].set(100/N)
+        wSlider[i].pack()
         print (wSlider[i].get())
 
 def rescale_values():
+    global dimensions
+    N=dimensions
     sum1=0.0;
     for i in range(N):
         sum1=sum1+wSlider[i].get()
 
-    if sum1==0:
-        sum1=1;
+    # if sum1==0:
+    #     sum1=1;
     for i in range(N):
         wSlider[i].set(100*wSlider[i].get()/sum1)
         wSlider[i].pack()
         w[i]=wSlider[i].get()/100
         
+    global nuT
+    print(nuT)
 
-
-
-    [L,V]=eig(C)
 
     outputT=np.zeros( (S2) )
-
+    
     #theta parameter of the Gamma distribution, mean is kappa*theta, where is set below wkappa= eigenvalue *theta, thus mean = eigenvalue
-    theta=50.1
-    for i in range(S2):
-        Lnew=np.zeros( (N) )
-        Cnew=np.zeros( (N,N) )
+    
+    
+    #nuT=4.1 #Degress of freedom <---------------
+    
 
-        for j in range(N):
-            Lnew[j]=np.random.gamma(L[j]/theta,theta)
+    
         
-        LnewDiag= np.diag(Lnew)
-        [l2,v2]=eig(V.dot(LnewDiag.dot(V.T)))
-        Cnew=V.dot(LnewDiag.dot(V.T))
+    for i in range(S2):
+        Cnew=np.zeros( (dimensions,dimensions) )
+    
+        sampleGamma=np.random.gamma(nuT/2,2/nuT)
+        
+        Cnew=sampleGamma*C
         outputT[i]=(sum( ( w*np.random.multivariate_normal(M,Cnew)) ).T)
+
 
     fig2, axes2 = pyplot.subplots( 2,1, tight_layout=True)
     ax02, ax12= axes2.flatten()
@@ -156,16 +170,25 @@ def rescale_values():
 ##############################################################################
 
 
+    
 master = Tk()
 
+
 wSlider = []
-for i in range(N):
+for i in range(dimensions):
     wSlider.append( Scale(master,length=300, from_=0, to=100, tickinterval=50, orient=HORIZONTAL,label='correspondnig mean: '+str(M[i])[0:5]+' std:'+str(C[i,i])[0:5]))
-    wSlider[i].set(1/N)
+    wSlider[i].set(w[i]*100)
     wSlider[i].pack()
 
-Button(master, text='Show', command=show_values).pack()
-Button(master, text='Rescale', command=rescale_values).pack()
+Button(master, text='Equalize', command=equalize_values).pack()
+Button(master, text='Re-scale weights and show histogram', command=rescale_values).pack()
+
+l = ttk.Label(master, text = "Set the degrees of freedom, nu=")
+l.pack()
+e = Entry(master,width=10)
+e.pack()
+
+Button(master, text='Set nu', command=setNu).pack()
 
 
 mainloop()
