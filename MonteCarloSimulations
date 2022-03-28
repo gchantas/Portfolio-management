@@ -10,11 +10,12 @@ from matplotlib import pyplot
 import numpy as np
 from numpy.random import randn,rand,set_state
 from numpy.random import RandomState,multivariate_normal
-from numpy.linalg import eigvals,eig
+from numpy.linalg import eigvals,eig,inv
+
 
 
 dimensions=10
-S=1000
+S=50
 X=np.zeros( (dimensions) )
 M=np.zeros( (dimensions) )
 C=np.zeros( (dimensions,dimensions) )
@@ -24,7 +25,7 @@ np.random.seed(myseed)
 
 for i in range(S):
     X=randn(dimensions)
-    M=M+100*X/S
+    M=M+(10)*X/S
     C=C+np.outer((X),(X))/S
 
 
@@ -44,7 +45,13 @@ for i in range(dimensions):
 
 for i in range(dimensions):
     w[i]=w[i]/wnorm
-    
+
+
+
+# print(w)
+# selectW(C)
+# print(w)
+
 S2=1000
 output=np.zeros( (S2) )
 for i in range(S2):
@@ -62,7 +69,7 @@ outputT=np.zeros( (S2) )
 #theta parameter of the Gamma distribution, mean is kappa*theta, where is set below wkappa= eigenvalue *theta, thus mean = eigenvalue
 
 
-nuT=.1 #Degress of freedom <---------------
+nuT=30.1 #Degress of freedom <---------------
 
 lambdaT = 0
 for i in range(dimensions):
@@ -97,8 +104,9 @@ ax0, ax1= axes.flatten()
 ax0.hist(output,100)
 ax1.hist(outputT,100)
 
-ax0.set_title( 'Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5]+'. Min/max='+str(min(output))[0:5]+'/'+str(max(output))[0:5])
-ax1.set_title( 'Students-t case. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5]+'. Min/max='+str(min(outputT))[0:5]+'/'+str(max(outputT))[0:5])
+
+ax0.set_title( 'Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5]+'. Min/max='+str(min(output))[0:5]+'/'+str(max(output))[0:5]+"\n Weighted mean="+str(sum(w*M.T))[0:5]+", w'Cw ="+str(np.sqrt(sum(w*(C.dot(w)).T)))[0:5])
+ax1.set_title( 'Students-t case. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5]+'. Min/max='+str(min(outputT))[0:5]+'/'+str(max(outputT))[0:5]+"\n Weighted mean="+str(sum(w*M.T))[0:5]+", w'C_{new}w ="+str(np.sqrt((nuT/(nuT-2))*sum(w*(Cnew.dot(w)).T)))[0:5])
 
 pyplot.show()
 ##############################################################################
@@ -108,6 +116,41 @@ from tkinter import Tk, Scale, Button, HORIZONTAL,mainloop,Text
 
 from tkinter import *
 from tkinter import ttk
+
+def selectW():
+    global dimensions
+    N=dimensions
+    global nuT
+    global w
+    global Cnew
+
+    print(1)
+    L,E=eig(Cnew)
+    mu=0.1;
+    
+    langrangeMult=2*N*mu/(sum(1/L));
+    wnew=np.zeros( (N))
+    for i in range(N):
+        wnew[i]=langrangeMult/L[i]
+        
+    w=(E.T).dot(wnew)
+    
+    wnorm=0
+    for i in range(dimensions):
+        if(w[i]<0):
+            w[i]=0;
+        else:
+            wnorm=wnorm+w[i]
+
+    for i in range(dimensions):
+        w[i]=w[i]/wnorm
+    
+    global wSlider
+    for i in range(N):
+        wSlider[i].set(w[i]*100)
+        wSlider[i].grid(row=i,column=0)
+        print (wSlider[i].get())
+    
 
 def setNu():
     global nuT
@@ -119,7 +162,7 @@ def equalize_values():
     N=dimensions
     for i in range(N):
         wSlider[i].set(100/N)
-        wSlider[i].pack()
+        wSlider[i].grid(row=i,column=0)
         print (wSlider[i].get())
 
 def rescale_values():
@@ -131,20 +174,18 @@ def rescale_values():
 
     # if sum1==0:
     #     sum1=1;
+    global w
     for i in range(N):
         wSlider[i].set(100*wSlider[i].get()/sum1)
-        wSlider[i].pack()
+        wSlider[i].grid(row=i,column=0)
         w[i]=wSlider[i].get()/100
-        
-    global nuT
-    print(nuT)
 
+    print(nuT)
 
     outputT=np.zeros( (S2) )
     
     #theta parameter of the Gamma distribution, mean is kappa*theta, where is set below wkappa= eigenvalue *theta, thus mean = eigenvalue
-    
-    
+   
     #nuT=4.1 #Degress of freedom <---------------
     
 
@@ -164,8 +205,8 @@ def rescale_values():
 
     ax12.hist(outputT,100)
     ax02.hist(output,100)
-    ax02.set_title( 'Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5]+'. Min/max='+str(min(output))[0:5]+'/'+str(max(output))[0:5])
-    ax12.set_title( 'Students-t Reweighted. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5]+'. Min/max='+str(min(outputT))[0:5]+'/'+str(max(outputT))[0:5])
+    ax02.set_title( 'Gaussian case. Sample mean/std='+str(np.mean(output))[0:5] +'/'+str(np.std(output))[0:5]+'. Min/max='+str(min(output))[0:5]+'/'+str(max(output))[0:5]+"\n Weighted mean="+str(sum(w*M.T))[0:5]+", wCw ="+str(np.sqrt(sum(w*(C.dot(w)).T)))[0:5])
+    ax12.set_title( 'Students-t case. Sample mean/std='+str(np.mean(outputT))[0:5] +'/'+str(np.std(outputT))[0:5]+'. Min/max='+str(min(outputT))[0:5]+'/'+str(max(outputT))[0:5]+"\n Weighted mean="+str(sum(w*M.T))[0:5]+", w'C_{new}w ="+str(np.sqrt(nuT*sum(w*(Cnew.dot(w)).T)/(nuT-2)))[0:5])
     pyplot.show()
 ##############################################################################
 
@@ -178,17 +219,25 @@ wSlider = []
 for i in range(dimensions):
     wSlider.append( Scale(master,length=300, from_=0, to=100, tickinterval=50, orient=HORIZONTAL,label='correspondnig mean: '+str(M[i])[0:5]+' std:'+str(C[i,i])[0:5]))
     wSlider[i].set(w[i]*100)
-    wSlider[i].pack()
+    wSlider[i].grid(row=i,column=0)
 
-Button(master, text='Equalize', command=equalize_values).pack()
-Button(master, text='Re-scale weights and show histogram', command=rescale_values).pack()
+Button(master, text='Equalize wieghts', command=equalize_values,borderwidth=2).grid(row=3,column=1)
+Button(master, text='Normalize changed weights \n and show histogram',borderwidth=2, command=rescale_values).grid(row=6,column=1)
 
-l = ttk.Label(master, text = "Set the degrees of freedom, nu=")
-l.pack()
+l = ttk.Label(master, text = "")
+l.grid(row=2,column=2)
+
+Button(master, text='Set the degrees of freedom, nu=', command=setNu,borderwidth=1 ).grid(row=2,column=1)
 e = Entry(master,width=10)
-e.pack()
+e.insert(0, str(nuT))
+e.grid(row=2,column=2)
 
-Button(master, text='Set nu', command=setNu).pack()
 
+Button(master, text='Select "optimal" w\'s', command=selectW).grid(row=4,column=1)
+# ConstraintMu = ttk.Label(master, text = "Weighted mean="+str(sum(w*M.T))[0:5] )
+# ConstraintSigma = ttk.Label(master, text =  "wCw ="+str(sum(w*(C.dot(M)).T))[0:5])
+# ConstraintMu.pack()
+# ConstraintSigma.pack()
+# ConstraintMu
 
 mainloop()
